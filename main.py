@@ -1,82 +1,54 @@
 # This part is related to import libraries
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # This part is related to read dataset
-table_ds_1h = pd.read_csv('dataset/eurusd_hour.csv')
-table_ds_1m = pd.read_csv('dataset/eurusd_minute.csv')
-print(table_ds_1m.shape)
-
-table_ds_1m.drop('AO', axis=1, inplace=True)
-table_ds_1m.drop('AH', axis=1, inplace=True)
-table_ds_1m.drop('AL', axis=1, inplace=True)
-table_ds_1m.drop('AC', axis=1, inplace=True)
-table_ds_1m.drop('ACh', axis=1, inplace=True)
-print(table_ds_1m.shape)
-
-
-x = 24
-y = 60
-for i in range(len(table_ds_1m)-1):
-    m_now = int(table_ds_1m['Time'][i].split(':')[1])
-    m_next = int(table_ds_1m['Time'][i + 1].split(':')[1])
-
-    h_now = int(table_ds_1m['Time'][i].split(':')[0])
-    h_next = int(table_ds_1m['Time'][i + 1].split(':')[0])
-
-    d_now = table_ds_1m['Date'][i]
-    d_next = table_ds_1m['Date'][i+1]
-
-    if len(table_ds_1m) - i > 4:
-        from_mean = i - 5
-        to_mean = i + 5
+table_ds_1h = pd.read_csv('dataset/1h_EURUSD_to_2005.csv')
+print(table_ds_1h)
+moving_15 = []
+moving_30 = []
+moving_60 = []
+rsi_14 = []
+for i in range(len(table_ds_1h)):
+    if i > 15:
+        mov15 = table_ds_1h.loc[i - 15:i, 'BC'].mean()
     else:
-        from_mean = i - 5
-        to_mean = len(table_ds_1m)
-
-    average_BO = table_ds_1m.loc[from_mean:to_mean, 'BO'].mean()
-    average_BH = table_ds_1m.loc[from_mean:to_mean, 'BH'].mean()
-    average_BL = table_ds_1m.loc[from_mean:to_mean, 'BL'].mean()
-    average_BC = table_ds_1m.loc[from_mean:to_mean, 'BC'].mean()
-    average_BCh = average_BO - average_BC
-    if d_now == d_next:
-        if h_now != 23 and m_now != 59:
-            if m_now == 59:
-                if m_next > 0:
-                    for j in range(m_next):
-                        now_time = str(h_next) + ':' + str(j)
-                        new_row_data = {'Date': d_now, 'Time': now_time, 'BO': average_BO, 'BH': average_BH, 'BL': average_BL, 'BC': average_BC, 'BCh': average_BCh}
-                        index_to_insert = i
-                        table_ds_1m = pd.concat([table_ds_1m.iloc[:index_to_insert], pd.DataFrame([new_row_data]), table_ds_1m.iloc[index_to_insert:]]).reset_index(drop=True)
+        mov15 = 0
+    if i > 30:
+        mov30 = table_ds_1h.loc[i - 30:i, 'BC'].mean()
+    else:
+        mov30 = 0
+    if i > 60:
+        mov60 = table_ds_1h.loc[i - 60:i, 'BC'].mean()
+    else:
+        mov60 = 0
+    if i > 14:
+        sum_profit = 0
+        sum_loss = 0
+        for j in range(i - 14, i):
+            bch = table_ds_1h['BCh'][j]
+            price_close = table_ds_1h['BC'][j]
+            if bch > 0:
+                sum_profit = sum_profit + price_close
             else:
-                if h_next == h_now:
-                    if m_next - m_now > 1:
-                        for k in range(m_now + 1, m_next):
-                            now_time = str(h_next) + ':' + str(k)
-                            new_row_data = {'Date': d_now, 'Time': now_time, 'BO': average_BO, 'BH': average_BH, 'BL': average_BL, 'BC': average_BC, 'BCh': average_BCh}
-                            index_to_insert = i
-                            table_ds_1m = pd.concat([table_ds_1m.iloc[:index_to_insert], pd.DataFrame([new_row_data]), table_ds_1m.iloc[index_to_insert:]]).reset_index(drop=True)
-                else:
-                    for n in range(m_now + 1, 60):
-                        now_time = str(h_now) + ':' + str(n)
-                        new_row_data = {'Date': d_now, 'Time': now_time, 'BO': average_BO, 'BH': average_BH, 'BL': average_BL, 'BC': average_BC, 'BCh': average_BCh}
-                        index_to_insert = i
-                        table_ds_1m = pd.concat([table_ds_1m.iloc[:index_to_insert], pd.DataFrame([new_row_data]), table_ds_1m.iloc[index_to_insert:]]).reset_index(drop=True)
-                    if h_next - h_now > 1:
-                        for c in range(h_now + 1, h_now):
-                            for z in range(0, 60):
-                                now_time = str(c) + ':' + str(z)
-                                new_row_data = {'Date': d_now, 'Time': now_time, 'BO': average_BO, 'BH': average_BH, 'BL': average_BL, 'BC': average_BC, 'BCh': average_BCh}
-                                index_to_insert = i
-                                table_ds_1m = pd.concat([table_ds_1m.iloc[:index_to_insert], pd.DataFrame([new_row_data]), table_ds_1m.iloc[index_to_insert:]]).reset_index(drop=True)
-                    for m in range(0, m_next):
-                        now_time = str(h_next) + ':' + str(m)
-                        new_row_data = {'Date': d_now, 'Time': now_time, 'BO': average_BO, 'BH': average_BH, 'BL': average_BL, 'BC': average_BC, 'BCh': average_BCh}
-                        index_to_insert = i
-                        table_ds_1m = pd.concat([table_ds_1m.iloc[:index_to_insert], pd.DataFrame([new_row_data]), table_ds_1m.iloc[index_to_insert:]]).reset_index(drop=True)
+                sum_loss = sum_loss + price_close
+        average_sum_profit = sum_profit / 14
+        average_loss_profit = sum_loss / 14
+        rsi_amount = 100 - (100 / (1 + (average_sum_profit/average_loss_profit)))
+    else:
+        rsi_amount = 0
+    moving_15.append(mov15)
+    moving_30.append(mov30)
+    moving_60.append(mov60)
+    rsi_14.append(rsi_amount)
+table_ds_1h['moving 15'] = moving_15
+table_ds_1h['moving 30'] = moving_30
+table_ds_1h['moving 60'] = moving_60
+table_ds_1h['RSI 14'] = rsi_14
 
-print(table_ds_1m.shape)
-new_file_path = 'new_full_1m_EURUSD.csv'  # Replace with the desired path for the new CSV file
-table_ds_1m.to_csv(new_file_path, index=False)
-
-
+print(table_ds_1h)
+rows_here = range(len(table_ds_1h)-1000,len(table_ds_1h))
+plt.figure(figsize=(60,2))
+plt.plot(rows_here, table_ds_1h['RSI 14'][len(table_ds_1h)-1000:len(table_ds_1h)])
+plt.show()
