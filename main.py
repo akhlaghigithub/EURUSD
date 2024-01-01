@@ -2,53 +2,21 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import indicators as ind
 # This part is related to read dataset
-table_ds_1h = pd.read_csv('dataset/1h_EURUSD_to_2005.csv')
-print(table_ds_1h)
-moving_15 = []
-moving_30 = []
-moving_60 = []
-rsi_14 = []
-for i in range(len(table_ds_1h)):
-    if i > 15:
-        mov15 = table_ds_1h.loc[i - 15:i, 'BC'].mean()
-    else:
-        mov15 = 0
-    if i > 30:
-        mov30 = table_ds_1h.loc[i - 30:i, 'BC'].mean()
-    else:
-        mov30 = 0
-    if i > 60:
-        mov60 = table_ds_1h.loc[i - 60:i, 'BC'].mean()
-    else:
-        mov60 = 0
-    if i > 14:
-        sum_profit = 0
-        sum_loss = 0
-        for j in range(i - 14, i):
-            bch = table_ds_1h['BCh'][j]
-            price_close = table_ds_1h['BC'][j]
-            if bch > 0:
-                sum_profit = sum_profit + price_close
-            else:
-                sum_loss = sum_loss + price_close
-        average_sum_profit = sum_profit / 14
-        average_loss_profit = sum_loss / 14
-        rsi_amount = 100 - (100 / (1 + (average_sum_profit/average_loss_profit)))
-    else:
-        rsi_amount = 0
-    moving_15.append(mov15)
-    moving_30.append(mov30)
-    moving_60.append(mov60)
-    rsi_14.append(rsi_amount)
-table_ds_1h['moving 15'] = moving_15
-table_ds_1h['moving 30'] = moving_30
-table_ds_1h['moving 60'] = moving_60
-table_ds_1h['RSI 14'] = rsi_14
+table_ds_1h = pd.read_csv('dataset/eurusd_hour.csv')
 
-print(table_ds_1h)
+table_ds_1h['moving 15'] = ind.moving_func(15, table_ds_1h)
+table_ds_1h['moving 30'] = ind.moving_func(30, table_ds_1h)
+table_ds_1h['moving 60'] = ind.moving_func(60, table_ds_1h)
+table_ds_1h['RSI 14'] = ind.rsi_func(14, table_ds_1h)
+table_ds_1h['Momentum 14'] = ind.momentum_func(14, table_ds_1h)
+
+# create a csv file and add rows (new dataset)
+new_file_path = 'test.csv'
+table_ds_1h.to_csv(new_file_path, index=False)
+
 rows_here = range(len(table_ds_1h)-1000,len(table_ds_1h))
 plt.figure(figsize=(60,2))
-plt.plot(rows_here, table_ds_1h['RSI 14'][len(table_ds_1h)-1000:len(table_ds_1h)])
+plt.plot(rows_here, table_ds_1h['Momentum 14'][len(table_ds_1h)-1000:len(table_ds_1h)])
 plt.show()
