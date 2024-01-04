@@ -43,3 +43,5 @@ def rsi_func(period, dataset):
             rsi_amount = 0
         rsi_list.append(rsi_amount)
     return (rsi_list)
+
+

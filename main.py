@@ -4,70 +4,54 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import indicators as ind
 # This part is related to read dataset
-table_ds_1h = pd.read_csv('dataset/EurUsd_with_indicators.csv')
+table_ds_1h = pd.read_csv('dataset/EurUsd_for_touch_moving.csv')
 
-list_status_moving = []
-list_diff_15_30 = []
-list_diff_30_60 = []
-list_touch_15_from_top = []
-list_touch_15_from_below = []
-for i in range(len(table_ds_1h['Date'])):
-    if i < 60:
-        status_moving = 'not'
-        diff_15_30 = 'not'
-        diff_30_60 = 'not'
-        touch_15_from_top = 'not'
-        touch_15_from_below = 'not'
-    else:
-        if (table_ds_1h['moving 15'][i] > table_ds_1h['moving 30'][i]) and (table_ds_1h['moving 30'][i] > table_ds_1h['moving 60'][i]):
-            status_moving = 'buy'
-            diff_15_30 = table_ds_1h['moving 15'][i] - table_ds_1h['moving 30'][i]
-            diff_30_60 = table_ds_1h['moving 30'][i] - table_ds_1h['moving 60'][i]
-            if (table_ds_1h['BO'][i] > table_ds_1h['moving 15'][i]) and (table_ds_1h['moving 15'][i] > table_ds_1h['BL'][i]):
-                touch_15_from_top = 'yes'
-                touch_15_from_below = 'not'
-            elif (table_ds_1h['BO'][i] < table_ds_1h['moving 15'][i]) and (table_ds_1h['BC'][i] > table_ds_1h['moving 15'][i]):
-                touch_15_from_top = 'not'
-                touch_15_from_below = 'yes'
-            else:
-                touch_15_from_top = 'not'
-                touch_15_from_below = 'not'
-        elif (table_ds_1h['moving 15'][i] < table_ds_1h['moving 30'][i]) and (table_ds_1h['moving 30'][i] < table_ds_1h['moving 60'][i]):
-            status_moving = 'sell'
-            diff_15_30 = table_ds_1h['moving 30'][i] - table_ds_1h['moving 15'][i]
-            diff_30_60 = table_ds_1h['moving 60'][i] - table_ds_1h['moving 30'][i]
-            if (table_ds_1h['BO'][i] > table_ds_1h['moving 15'][i]) and (table_ds_1h['moving 15'][i] > table_ds_1h['BC'][i]):
-                touch_15_from_top = 'yes'
-                touch_15_from_below = 'not'
-            elif (table_ds_1h['BO'][i] < table_ds_1h['moving 15'][i]) and (table_ds_1h['BH'][i] > table_ds_1h['moving 15'][i]):
-                touch_15_from_top = 'not'
-                touch_15_from_below = 'yes'
-            else:
-                touch_15_from_top = 'not'
-                touch_15_from_below = 'not'
-        else:
-            status_moving = 'not'
-            diff_15_30 = 'not'
-            diff_30_60 = 'not'
-            touch_15_from_top = 'not'
-            touch_15_from_below = 'not'
-    list_status_moving.append(status_moving)
-    list_diff_15_30.append(diff_15_30)
-    list_diff_30_60.append(diff_30_60)
-    list_touch_15_from_top.append(touch_15_from_top)
-    list_touch_15_from_below.append(touch_15_from_below)
-table_ds_1h['status moving'] = list_status_moving
-table_ds_1h['diff 15 and 30'] = list_diff_15_30
-table_ds_1h['diff 30 and 60'] = list_diff_30_60
-table_ds_1h['touch 15 from top'] = list_touch_15_from_top
-table_ds_1h['touch 15 from below'] = list_touch_15_from_below
-print(table_ds_1h)
 count_buy_status = 0
 count_sell_status = 0
-for i in range(len(table_ds_1h['Date'])):
+status_buy = 0
+status_sell = 0
+list_buy_trade = []
+list_sell_trade = []
+list_type_buy_gain = []
+list_type_sell_gain = []
+for i in range(60, len(table_ds_1h['Date'])):
     if table_ds_1h['status moving'][i] == 'buy':
         count_buy_status += 1
+        for j in range(i-5, 0, -1):
+            if (table_ds_1h['BC'][j] < table_ds_1h['moving 15'][i]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j + 1]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j + 2]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j + 3]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j + 4]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j + 5]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j - 1]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j - 2]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j - 3]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j - 4]) and (table_ds_1h['BC'][j] < table_ds_1h['BC'][j - 5]):
+                stop_loss_for_buy = table_ds_1h['BC'][j]
+                take_profit_for_buy = table_ds_1h['moving 15'][i] + (table_ds_1h['moving 15'][i] - stop_loss_for_buy)
+                break
+        for k in range(i, len(table_ds_1h['Date'])):
+            if table_ds_1h['BH'][k] > take_profit_for_buy:
+                status_buy += 1
+                list_buy_trade.append(1)
+                break
+            elif table_ds_1h['BL'][k] < stop_loss_for_buy:
+                status_buy -= 1
+                list_buy_trade.append(-1)
+                break
+            list_type_buy_gain.append(status_buy)
     elif table_ds_1h['status moving'][i] == 'sell':
         count_sell_status += 1
+        for j in range(i-5, 0, -1):
+            if (table_ds_1h['BC'][j] > table_ds_1h['moving 15'][i]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j + 1]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j + 2]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j + 3]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j + 4]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j + 5]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j - 1]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j - 2]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j - 3]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j - 4]) and (table_ds_1h['BC'][j] > table_ds_1h['BC'][j - 5]):
+                stop_loss_for_sell = table_ds_1h['BC'][j]
+                take_profit_for_sell = table_ds_1h['moving 15'][i] - (stop_loss_for_sell - table_ds_1h['moving 15'][i])
+                break
+        for k in range(i, len(table_ds_1h['Date'])):
+            if table_ds_1h['BH'][k] > stop_loss_for_sell:
+                status_sell -= 1
+                list_sell_trade.append(-1)
+                break
+            elif table_ds_1h['BL'][k] < take_profit_for_sell:
+                status_sell += 1
+                list_sell_trade.append(1)
+                break
+            list_type_sell_gain.append(status_sell)
 print(f'buy = {count_buy_status}')
 print(f'sell = {count_sell_status}')
+print(f'success buy = {status_buy}')
+print(f'success sell = {status_sell}')
+print(f'max gain buy = {max(list_type_buy_gain)} and min = {min(list_type_buy_gain)}')
+print(f'max gain sell = {max(list_type_sell_gain)} and min = {min(list_type_sell_gain)}')
