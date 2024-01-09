@@ -1,4 +1,10 @@
 def moving_func(period, dataset):
+    """
+    this function calculates moving average.
+    :param period: period of moving average
+    :param dataset: select dataset
+    :return: return list of moving average
+    """
     moving_list = []
     for i in range(len(dataset['Date'])):
         if i > period:
@@ -6,9 +12,16 @@ def moving_func(period, dataset):
         else:
             moving_amount = 0
         moving_list.append(moving_amount)
-    return(moving_list)
+    return moving_list
+
 
 def momentum_func(period, dataset):
+    """
+    this function calculates momentum.
+    :param period: period of momentum
+    :param dataset: select dataset
+    :return: return list of momentum
+    """
     momentum_list = []
     for i in range(len(dataset['Date'])):
         if i > period:
@@ -18,9 +31,16 @@ def momentum_func(period, dataset):
         else:
             mom_amount = 0
         momentum_list.append(mom_amount)
-    return(momentum_list)
+    return momentum_list
+
 
 def rsi_func(period, dataset):
+    """
+    this function calculates RSI.
+    :param period: period of RSI
+    :param dataset: select dataset
+    :return: return RSI
+    """
     rsi_list = []
     for i in range(len(dataset['Date'])):
         if i > period:
@@ -42,6 +62,6 @@ def rsi_func(period, dataset):
         else:
             rsi_amount = 0
         rsi_list.append(rsi_amount)
-    return (rsi_list)
+    return rsi_list
 
 
