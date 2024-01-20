@@ -289,6 +289,7 @@ print(f'success sell top = {status_sell_top}')
 print(f'max gain buy below = {max(list_type_buy_below_gain)} and min = {min(list_type_buy_below_gain)}')
 print(f'max gain sell top = {max(list_type_sell_top_gain)} and min = {min(list_type_sell_top_gain)}')
 
+
 list_buy_continue_profit = []
 list_buy_continue_loss = []
 profit_continue_b = 0
